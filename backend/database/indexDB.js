@@ -3,6 +3,7 @@ const dbConfig = require('../config/database.js')
 
 const conexao = new Sequelize(dbConfig)
 const users = require('../api/models/UsersModel')
+const orders = require('../api/models/OrdersModel')
 
 try{
     conexao.authenticate();
@@ -12,5 +13,6 @@ try{
 }
 
 users.init(conexao)
+orders.init(conexao)
 
 module.exports = conexao

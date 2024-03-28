@@ -2,8 +2,6 @@ import { React, useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useFormik } from "formik";
 import api from "../../services/api";
-import Input from "../../components/form/input/input";
-import { LoginModal } from "./style";
 
 export default function Login(props) {
   const navigate = useNavigate();

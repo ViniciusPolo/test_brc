@@ -15,6 +15,10 @@ class Users extends Model {
         })
         return this 
     }
+    static associate(models) {
+        this.hasMany(models.Orders, { foreignKey: "id_user", as: "id_user" });
+      }
+    
 
 }
 module.exports = Users

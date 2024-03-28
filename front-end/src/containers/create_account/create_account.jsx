@@ -3,8 +3,6 @@ import { useNavigate } from "react-router-dom";
 import { Link } from "react-router-dom";
 import { useFormik } from "formik";
 import api from "../../services/api";
-import Input from "../../components/form/input/input";
-import { LoginModal } from "./style";
 
 export default function CreateAccount() {
     const navigate = useNavigate();
@@ -55,10 +53,10 @@ export default function CreateAccount() {
         },
     })
     return (
-        <LoginModal>
+        <div>
             <form onSubmit={formik.handleSubmit}>
 
-                <Input
+                <input
                     label="First Name"
                     id="firstname"
                     name="firstname"
@@ -66,7 +64,7 @@ export default function CreateAccount() {
                     onChange={formik.handleChange}
                     value={formik.values.firstname}
                 />
-                <Input
+                <input
                     label="Last Name"
                     id="lastname"
                     name="lastname"
@@ -74,7 +72,7 @@ export default function CreateAccount() {
                     onChange={formik.handleChange}
                     value={formik.values.lastname}
                 />
-                <Input
+                <input
                     label="Your better email"
                     id="betteremail"
                     name="betteremail"
@@ -82,7 +80,7 @@ export default function CreateAccount() {
                     onChange={formik.handleChange}
                     value={formik.values.betteremail}
                 />
-                <Input
+                <input
                     label="Confirm email"
                     id="confirmemail"
                     name="confirmemail"
@@ -90,7 +88,7 @@ export default function CreateAccount() {
                     onChange={formik.handleChange}
                     value={formik.values.confirmemail}
                 />
-                <Input
+                <input
                     label="Keyword"
                     type="password"
                     id="keyword"
@@ -98,7 +96,7 @@ export default function CreateAccount() {
                     onChange={formik.handleChange}
                     value={formik.values.keyword}
                 />
-                <Input
+                <input
                     label="Confirm keyword"
                     type="password"
                     id="keywordconfirm"
@@ -106,8 +104,8 @@ export default function CreateAccount() {
                     onChange={formik.handleChange}
                     value={formik.values.keywordconfirm}
                 />
-                <Input type="Submit" value="Save" />
+                <input type="Submit" value="Save" />
             </form>
-        </LoginModal>
+        </div>
     )
 }

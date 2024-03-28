@@ -13,8 +13,10 @@ app.use(express.json())
 app.use(cors())
 
 const usersRoutes = require('./api/routes/usersRoutes')
+const ordersRoutes = require('./api/routes/ordersRoutes')
 
 app.use(usersRoutes)
+app.use(ordersRoutes)
 
 app.set('url', 'http://localhost:');
 app.set('port', 3015);
