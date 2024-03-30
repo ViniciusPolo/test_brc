@@ -1,7 +1,7 @@
 import { React, useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useFormik } from "formik";
-import api from "../../services/api";
+import api from "../services/api";
 
 export default function Login(props) {
   const navigate = useNavigate();
@@ -13,15 +13,13 @@ export default function Login(props) {
     },
     onSubmit: (values) => {
       try {
-        console.log("login");
-        const log = api
+        api
           .post("/login", {
             cpf: values.cpf,
             password: values.password,
           })
           .then((response) => response.data)
           .then((data) => {
-            console.log("RESPONSE", data);
             if (data.auth) {
               localStorage.setItem("x-access-token", data.token);
               localStorage.setItem("valid_token", data.auth);
@@ -29,7 +27,6 @@ export default function Login(props) {
               navigate("/");
             } else alert("Email or Password incorrect");
           });
-        if (log) console.log("log", log);
       } catch (error) {
         alert("Please type a correct a email and Password");
       }
@@ -37,8 +34,9 @@ export default function Login(props) {
   });
 
   return (
+    <>
     <div class="d-flex align-items-center justify-content-center vh-100">
-      <div class="container card d-flex w-50 justify-content-center align-middle">
+      <div class="container col-12 col-md-4 card d-flex justify-content-center align-middle text-center">
         <div class="container card-body">
           <h5 class="row d-flex justify-content-center card-title">Login</h5>
           <form onSubmit={formik.handleSubmit}>
@@ -80,7 +78,7 @@ export default function Login(props) {
             </div>
             <div className="row d-flex justify-content-center align-items-center">
               <Link class="w-50 btn btn-primary" to="/create-account">
-                Create Account
+                Criar Conta
               </Link>
             </div>
             <div className="row d-flex justify-content-center align-items-center">
@@ -96,5 +94,6 @@ export default function Login(props) {
         </div>
       </div>
     </div>
+    </>
   );
 }

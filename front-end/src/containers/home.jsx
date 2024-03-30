@@ -1,6 +1,6 @@
 import { React, useState, useEffect } from "react";
 
-import api from "../../services/api";
+import api from "../services/api";
 import axios from "axios";
 import socketIOClient from "socket.io-client";
 import { ToastContainer, toast } from "react-toastify";
@@ -57,11 +57,9 @@ export default function Home() {
         .get(`/orders/last-order`)
         .then((response) => response.data)
         .then((data) => {
-          console.log("data1",data)
           if (!data){
             data = []
           }
-          console.log("data2",data)
           setLast(data);
         })
         .catch((e) => {
@@ -238,7 +236,6 @@ export default function Home() {
   };
 
   const executarOrdens = async () => {
-    debugger;
     setShowConfirmExecutionModal(true);
     try {
       await api
@@ -428,15 +425,22 @@ export default function Home() {
                 <form>
                   <div class="row d-flex input-group mb-3">
                     <span
-                      class="input-group-text w-25"
+                      class="input-group-text w-auto"
                       id="inputGroup-sizing-default"
                     >
                       BTC
+                    </span>
+                    <span
+                      class="input-group-text w-auto"
+                      id="inputGroup-sizing-auto"
+                    >
+                      ₿
                     </span>
                     <input
                       id="btc"
                       name="btc"
                       type="number"
+                      placeholder="$ 0.0000"
                       onChange={(e) => {conversor(e)
                                         setBlockButton(true)}}
                       value={btc}
@@ -452,21 +456,26 @@ export default function Home() {
                         id="button-addon2"
                         onClick={() => calculoConversao("btc")}
                       >
-                        Convert
+                        Converter
                       </button>
                     )}
                   </div>
                   <div class="row d-flex input-group mb-3">
                     <span
-                      class="input-group-text w-25"
+                      class="input-group-text w-auto"
                       id="inputGroup-sizing-default"
                     >
                       USD
                     </span>
+                    <span
+                      class="input-group-text w-auto"
+                      id="inputGroup-sizing-auto"
+                    >$</span>
                     <input
                       name="usd"
                       id="usd"
                       type="number"
+                      placeholder="$ 0.00"
                       onChange={(e) => {conversor(e)
                                         setBlockButton(true)}}
                       value={usd}
@@ -482,12 +491,11 @@ export default function Home() {
                         id="button-addon2"
                         onClick={() => calculoConversao("usd")}
                       >
-                        Convert
+                        Converter
                       </button>
                     )}
                   </div>
-                  <div className="row d-flex justify-content-center align-items-center"></div>
-                  <div className="row d-flex justify-content-center align-items-center">
+                  <div className="row d-flex justify-content-center align-items-center card-style">
                     <button
                       type="button"
                       onClick={() => setShowTransactionModal(false)}
@@ -528,38 +536,38 @@ export default function Home() {
       <div className="container mb-3">
       <h2 class="row">Olá {name}, bem vindo ao seu monitor de Transações</h2>
       </div>
-      <div className="container border border-primary p-3 rounded-3 mb-3">
+      <div className="container border border-primary p-3 rounded-3 mb-3 card-style card-style card-style">
         <h2 class="row">Statistics</h2>
         <div class="table-responsive border border-secondary p-3" style={{ maxHeight: "200px" }}>
           <table class="table table-striped table-hover w-100">
             <tbody>
               <tr scope="row">
                 <td>High</td>
-                <td>{high}</td>  
+                <td>₿ {high}</td>  
               </tr>
               <tr scope="row">
                 <td>Low</td>
-                <td>{low}</td>  
+                <td>₿ {low}</td>  
               </tr>
               <tr scope="row">
                 <td>User BTC Balance</td>
-                <td>{saldoBtc}</td>  
+                <td>₿ {saldoBtc}</td>  
               </tr>
               <tr scope="row">
                 <td>User USD Balance</td>
-                <td>{saldoUsd}</td>   
+                <td>₿ {saldoUsd}</td>   
               </tr>
               <tr>
                 <td>Last Price</td>
-                <td>{last.price/last.amount || 0}</td>   
+                <td>₿ {last.price/last.amount || 0}</td>   
               </tr>
               <tr>
                 <td>Sum of the last 24 hours/BTC </td>
-                <td>{lastDay.sumOfAmount || 0}</td>   
+                <td>₿ {lastDay.sumOfAmount || 0}</td>   
               </tr>
               <tr>
                 <td>Sum of the last 24 hours/USD </td>
-                <td>{lastDay.sumOfPrice || 0}</td>   
+                <td>$ {lastDay.sumOfPrice || 0}</td>   
               </tr>
             </tbody>
           </table>
@@ -594,7 +602,7 @@ export default function Home() {
       </div>
 
             
-      <div className="container border border-primary p-3 rounded-3  mb-3">
+      <div className="container border border-primary p-3 rounded-3 mb-3 card-style">
         <h2 class="row">Minhas Ordens Abertas </h2>
         <div class="table-responsive" style={{ maxHeight: "200px" }}>
           <table class="table table-striped table-hover w-100 border border-secondary p-3">
@@ -612,13 +620,12 @@ export default function Home() {
                   const openedOrdersFiltered = orders.filter(
                     (o) => o.active
                   );
-                  console.log("ttttt", openedOrdersFiltered.length)
                   if (openedOrdersFiltered.length >= 1) {
                     return (
                       <tr scope="row">
                         <td>{o.id}</td>
-                        <td>{o.amount}</td>
-                        <td>{o.price}</td>
+                        <td>₿ {o.amount}</td>
+                        <td>$ {o.price}</td>
                         <td>{o.type_of_transaction}</td>
                         <td>
                           {o.active ? (
@@ -652,7 +659,7 @@ export default function Home() {
           </table>
         </div>
       </div>
-      <div className="container border border-primary p-3 rounded-3 mb-3">
+      <div className="container border border-primary p-3 rounded-3 mb-3 card-style">
         <h2 class="row">Meu Histórico de Transações </h2>
         <div class="table-responsive border border-secondary p-3" style={{ maxHeight: "200px" }}>
           <table class="table table-striped table-hover w-100">
@@ -670,8 +677,8 @@ export default function Home() {
                   return (
                     <tr scope="row">
                       <td>{o.id}</td>
-                      <td>{o.amount}</td>
-                      <td>{o.price}</td>
+                      <td>₿ {o.amount}</td>
+                      <td>$ {o.price}</td>
                       <td>{o.type_of_transaction}</td>
                       <td>
                         {o.active ? (
@@ -688,19 +695,19 @@ export default function Home() {
         </div>
       </div>
 
-      <div className="container border border-primary p-3 rounded-3  mb-3">
+      <div className="container border border-primary p-3 rounded-3 mb-3 card-style">
         <h2 class="row">ASK/BID </h2>
         <div class="table-responsive border border-secondary p-3" style={{ maxHeight: "200px" }}>
           <table class="table table-striped table-hover w-100">
-            <thead class="thead thead-dark">
+            <thead class="thead thead-dark">   
               <th scope="col">Price</th>
               <th scope="col">Volume</th>
               <th scope="col">BID/ASK</th>
             </thead>
             <tbody>
               <tr scope="row">
-                <td>{totalBuyAmount}</td>
-                <td>{totalBuyPrice}</td>
+                <td>$ {totalBuyPrice}</td>
+                <td>₿ {totalBuyAmount}</td>
                 <td>
                   <button
                     class="btn btn-light"
@@ -714,8 +721,8 @@ export default function Home() {
                 </td>
               </tr>
               <tr scope="row">
-                <td>{totalSellAmount}</td>
-                <td>{totalSellPrice}</td>
+                <td>$ {totalSellPrice}</td>
+                <td>₿ {totalSellAmount}</td>
                 <td>
                   <button
                     class="btn btn-light"
