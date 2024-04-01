@@ -4,6 +4,7 @@ const router = express.Router()
 const ordersController = require ('../controllers/ordersController');
 
 router.get('/orders', ordersController.indexAll);
+router.get('/orders/find-one/:id', ordersController.indexOne);
 router.get('/orders/last-order', ordersController.indexLast);
 router.get('/orders/last-day/:id_user', ordersController.indexLastDay);
 router.get('/orders/count-opened/:id_user', ordersController.countOpenedOrders);

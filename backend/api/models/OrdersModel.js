@@ -8,7 +8,8 @@ class Orders extends Model {
             amount: DataTypes.DOUBLE,
             price: DataTypes.DOUBLE,
             active: DataTypes.BOOLEAN,
-            unity_price: DataTypes.DOUBLE
+            unity_price: DataTypes.DOUBLE,
+            fee: DataTypes.DOUBLE
         }, {
             sequelize,
             tableName: "orders"

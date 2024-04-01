@@ -13,6 +13,22 @@ module.exports = {
     }
   },
 
+  async indexOne(req, res) {
+    const { id } = req.params;
+    try {
+      const order = await Orders.findOne({
+        where : {id : id}
+    })
+    return res.status(200).send({
+        status: 1,
+        message: `Order found`,
+        order
+    });
+    } catch (err) {
+      return res.status(400).send("Broked ->" + err);
+    }
+  },
+
   async indexLast(req, res) {
     try {
       const orders = await Orders.findOne({
@@ -106,13 +122,14 @@ module.exports = {
   async store(req, res) {
     try {
       const { id_user } = req.params;
-      const { type_of_transaction, amount, price, unity_price } = req.body;
+      const { type_of_transaction, amount, price, unity_price, fee } = req.body;
       const orders = await Orders.create({
         id_user,
         type_of_transaction,
         amount,
         price,
         unity_price,
+        fee
       });
       return res.status(200).send({
         status: 1,
@@ -126,12 +143,13 @@ module.exports = {
 
   async executeOrders(req, res) {
     try {
-      const { active, id_user ,type_of_transaction } = req.body;
+      const { active, id_user ,type_of_transaction, fee } = req.body;
 
       const orders = await Orders.update(
         {
           active,
-          id_user
+          id_user,
+          fee
         },
         {
           where: {active: true, type_of_transaction: type_of_transaction },
@@ -150,14 +168,15 @@ module.exports = {
   async executeParcialOrders(req, res) {
     try {
       const { id } = req.params;
-      const { active, id_user, amount, type_of_transaction, price } = req.body;
+      const { active, id_user, amount, type_of_transaction, price, fee } = req.body;
 
       const orders = await Orders.update(
         {
           active,
           id_user,
           amount, 
-          price   
+          price,
+          fee   
         },
         {
           where: { id: id, type_of_transaction: type_of_transaction },
@@ -176,12 +195,13 @@ module.exports = {
   async executeOneOrder(req, res) {
     try {
       const { id } = req.params;
-      const { active, id_user, type_of_transaction } = req.body;
+      const { active, id_user, type_of_transaction, fee } = req.body;
 
       const orders = await Orders.update(
         {
           active,
-          id_user
+          id_user,
+          fee
         },
         {
           where: {

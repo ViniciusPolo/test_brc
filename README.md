@@ -43,12 +43,14 @@ npx sequelize-cli db:migrate
 ```
 npm start
 ```  
+* usuários do yarn, sabem o que fazer
 * pode ser necessário maiores privilégios
 
 * ### 7 - Abra outro termina e altere para o diretório frontend execute o mesmo comando 
 ```
 npm start
 ```  
+* usuários do yarn, sabem o que fazer
 * pode ser necessário maiores privilégios
 * ### 8 - Pronto, ja pode usar seu HomeBroker de Criptmoedas
 * #### 8.1 - Tela de Login
@@ -57,9 +59,7 @@ npm start
 ![create-account](imagesReadme/create.png)
 * #### 8.3 - Tela de Broker
 ![broker-top](imagesReadme/home-top.png)
-* #### 8.4 - Tela de Broker, parte inferior
-![broker-botton](imagesReadme/home-botton.png)
-* #### 8.5 - Modal de Converter Moeda
+* #### 8.4 - Modal de Converter Moeda
 ![conversor](imagesReadme/convert.png)
 * #### 8.5 - Modal de Confirmação
 ![confirmação](imagesReadme/confirm.png)

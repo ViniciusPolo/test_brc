@@ -32,7 +32,7 @@ export default function Home() {
   const [totalSellPrice, setTotalSellPrice] = useState(0);
   const [totalBuyAmount, setTotalBuyAmount] = useState(0);
   const [totalBuyPrice, setTotalBuyPrice] = useState(0);
-  const [blockButton, setBlockButton] = useState(false);
+  const [blockButton, setBlockButton] = useState(true);
 
   const fetchData = async () => {
     try {
@@ -124,7 +124,7 @@ export default function Home() {
 
   const calculateTotalSellAmount = () => {
     const totalSellAmount = orders
-      .filter((o) => o.active && o.type_of_transaction === "SELL")
+      .filter((o) => o.active && o.type_of_transaction === "SELL" && o.id_user != localStorage.getItem("logged_user_id"))
       .reduce(
         (accumulator, currentOrder) => accumulator + currentOrder.amount,
         0
@@ -133,9 +133,8 @@ export default function Home() {
   };
 
   const calculateTotalSellPrice = () => {
-    console.log("testes");
     const totalSellPrice = orders
-      .filter((o) => o.active && o.type_of_transaction == "SELL")
+      .filter((o) => o.active && o.type_of_transaction == "SELL" && o.id_user != localStorage.getItem("logged_user_id"))
       .reduce(
         (accumulator, currentOrder) => accumulator + currentOrder.price,
         0
@@ -210,15 +209,22 @@ export default function Home() {
   };
 
   const buy = async (amount, price, quantityOrders) => {
-    if (saldoUsd >= price) {
-      const newSaldoUsd = parseFloat(saldoUsd) - parseFloat(price);
-      const newSaldoBtc = parseFloat(saldoBtc) + parseFloat(amount);
-      ajustaSaldo(newSaldoUsd, newSaldoBtc);
-    } else {
-      toast.error("Saldo USD insuficiente");
-    }
-
+    const fee = (price * 0.003) + data[4]
+    var user_maker = 0
     if (quantityOrders == "one") {
+      await api
+        .get(
+          `/orders/find-one/${data[0]}`
+        )
+        .then((response) => response.data)
+        .then((dataApi) => {
+          user_maker = dataApi.order.id_user
+        })
+        .catch((e) => {
+          setShowConfirmExecutionModal(false);
+          toast.error("Houve um erro:" + e);
+        });
+
       await api
         .patch(
           `/order/execute-order/${data[0]}`,
@@ -226,6 +232,7 @@ export default function Home() {
             active: false,
             id_user: localStorage.getItem("logged_user_id"),
             type_of_transaction: data[1],
+            fee: fee
           }
         )
         .then((response) => response.data)
@@ -237,9 +244,9 @@ export default function Home() {
           setShowConfirmExecutionModal(false);
           toast.error("Houve um erro:" + e);
         });
-      const newSaldoUsd = parseFloat(saldoUsd) - parseFloat(price);
+      const newSaldoUsd = parseFloat(saldoUsd) - parseFloat(price) - fee;
       const newSaldoBtc = parseFloat(saldoBtc) + parseFloat(amount);
-      ajustaSaldo(newSaldoUsd, newSaldoBtc);
+      ajustaSaldo(newSaldoUsd, newSaldoBtc, user_maker , "BUY", price, amount);
     } else {
       if (saldoUsd >= price) {
         try {
@@ -250,6 +257,7 @@ export default function Home() {
                 active: false,
                 id_user: localStorage.getItem("logged_user_id"),
                 type_of_transaction: data[1],
+                fee: fee
               }
             )
             .then((response) => response.data)
@@ -263,9 +271,9 @@ export default function Home() {
               toast.error("Houve um erro:" + e);
             });
         } catch (error) {}
-        const newSaldoUsd = parseFloat(saldoUsd) - parseFloat(price);
+        const newSaldoUsd = parseFloat(saldoUsd) - parseFloat(price) - fee;
         const newSaldoBtc = parseFloat(saldoBtc) + parseFloat(amount);
-        ajustaSaldo(newSaldoUsd, newSaldoBtc);
+        ajustaSaldo(newSaldoUsd, newSaldoBtc, user_maker , "BUY", price, amount);
       } else {
         toast.error("Saldo USD insuficiente");
       }
@@ -273,7 +281,22 @@ export default function Home() {
   };
 
   const sell = async (amount, price, quantityOrders) => {
+    var user_maker = 0
+    const fee = (price * 0.003) + data[4]
     if (quantityOrders == "one") {
+      await api
+        .get(
+          `/orders/find-one/${data[0]}`
+        )
+        .then((response) => response.data)
+        .then((dataApi) => {
+          user_maker = dataApi.order.id_user
+        })
+        .catch((e) => {
+          setShowConfirmExecutionModal(false);
+          toast.error("Houve um erro:" + e);
+        });
+
       await api
       .patch(
         `/order/execute-order/${data[0]}`,
@@ -281,6 +304,7 @@ export default function Home() {
           active: false,
           id_user: localStorage.getItem("logged_user_id"),
           type_of_transaction: data[1],
+          fee : fee
         }
       )
         .then((response) => response.data)
@@ -292,9 +316,9 @@ export default function Home() {
           setShowConfirmExecutionModal(false);
           toast.error("Houve um erro:" + e);
         });
-      const newSaldoUsd = parseFloat(saldoUsd) + parseFloat(price);
+      const newSaldoUsd = parseFloat(saldoUsd) + parseFloat(price) - fee;
       const newSaldoBtc = parseFloat(saldoBtc) - parseFloat(amount);
-      ajustaSaldo(newSaldoUsd, newSaldoBtc);
+      ajustaSaldo(newSaldoUsd, newSaldoBtc, user_maker , "SELL", price, amount);
     } else {
       if (saldoBtc >= amount) {
         try {
@@ -305,6 +329,7 @@ export default function Home() {
                   active: false,
                   id_user: localStorage.getItem("logged_user_id"),
                   type_of_transaction: data[1],
+                  fee: fee
                 }
             )
             .then((response) => response.data)
@@ -318,9 +343,9 @@ export default function Home() {
               toast.error("Houve um erro:" + e);
             });
         } catch (error) {}
-        const newSaldoUsd = parseFloat(saldoUsd) + parseFloat(price);
+        const newSaldoUsd = parseFloat(saldoUsd) + parseFloat(price) - fee;
         const newSaldoBtc = parseFloat(saldoBtc) - parseFloat(amount);
-        ajustaSaldo(newSaldoUsd, newSaldoBtc);
+        ajustaSaldo(newSaldoUsd, newSaldoBtc, user_maker, "SELL", price, amount);
       } else if (saldoBtc < amount && saldoBtc > 0) {
         try {
           var executedPrice = 0
@@ -330,7 +355,6 @@ export default function Home() {
             .then((dataApi) => {
               var parcialAmount = saldoBtc / dataApi.data.length;
               var parcialPrice = amount / dataApi.data.length;
-              debugger;
               var totalAmountOpenedOrders = 0;
               var partialPercentege;
               
@@ -354,6 +378,7 @@ export default function Home() {
                       id_user: localStorage.getItem("logged_user_id"),
                       price: parcialPrice,
                       type_of_transaction: "SELL",
+                      fee: fee
                     }
                   )
                   .then((response) => response)
@@ -371,9 +396,9 @@ export default function Home() {
               console.error(`An error occurred: ${e}`);
             });
         } catch (error) {}
-        const newSaldoUsd = parseFloat(saldoUsd) + parseFloat(executedPrice);
+        const newSaldoUsd = parseFloat(saldoUsd) + parseFloat(executedPrice) - fee;
         const newSaldoBtc = 0.0;
-        ajustaSaldo(newSaldoUsd, newSaldoBtc);
+        ajustaSaldo(newSaldoUsd, newSaldoBtc, user_maker, "SELL", price, amount);
       } else {
         toast.error("Saldo USD insuficiente");
       }
@@ -382,13 +407,14 @@ export default function Home() {
 
   const executarOrdens = async (quantityOrders) => {
     setShowConfirmExecutionModal(true);
-    if (data[1] == "SELL") sell(data[2], data[3], quantityOrders);
-    if (data[1] == "BUY") buy(data[2], data[3], quantityOrders);
+    if (data[1] == "BUY") sell(data[2], data[3], quantityOrders);
+    if (data[1] == "SELL") buy(data[2], data[3], quantityOrders);
     setShowConfirmExecutionModal(false);
   };
 
-  const ajustaSaldo = async (newSaldoUsd, newSaldoBtc) => {
+  const ajustaSaldo = async (newSaldoUsd, newSaldoBtc, user_maker, type, price, amount) => {
     try {
+      // ajusta saldo taker
       await api
         .patch(
           `/users/update-values/${localStorage.getItem("logged_user_id")}`,
@@ -408,10 +434,52 @@ export default function Home() {
           setShowConfirmExecutionModal(false);
           toast.error("Houve um erro:" + e);
         });
+
+        // ajusta saldo maker
+        if (user_maker){
+          var saldoBtcMaker = 0
+          var saldoUsdMaker = 0
+          await api
+            .get(`/users/${user_maker}`)
+            .then((response) => response.data)
+            .then((dataApi) => {
+              setName(dataApi.user.firstName);
+              saldoBtcMaker = dataApi.user.btc ;
+              saldoUsdMaker = dataApi.user.usd ;
+            })
+            .catch((e) => {
+              console.error(`An error occurred: ${e}`);
+            });
+          if (type == "BUY") {
+              saldoBtcMaker -= parseFloat(amount);
+              saldoUsdMaker += parseFloat(price);
+          } else if (type == "SELL") {
+              saldoBtcMaker += parseFloat(amount);
+              saldoUsdMaker -= parseFloat(price);
+          }
+
+          await api
+          .patch(
+            `/users/update-values/${user_maker}`,
+            {
+              btc: saldoBtcMaker,
+              usd: saldoUsdMaker,
+            }
+          )
+        .then(() => {
+          toast.success("Maker Creditado ou Debitado!");
+        })
+        .catch((e) => {
+          setShowConfirmExecutionModal(false);
+          toast.error("Houve um erro:" + e);
+        });
+      }
     } catch (error) {}
+    
   };
 
   const createOrder = () => {
+    const fee = 0.005 * usd
     try {
       api
         .post(`/orders/${localStorage.getItem("logged_user_id")}`, {
@@ -419,11 +487,13 @@ export default function Home() {
           amount: btc,
           price: usd,
           unity_price: unityBtc,
+          fee: fee
         })
         .then((response) => response.data)
         .then((data) => {
           setShowTransactionModal(false);
           setShowConfirmOrderModal(false);
+          ajustaSaldo(saldoUsd + fee, saldoBtc, null, null, null, null);
           toast.success("Ordem Cadastrada com sucesso!");
         })
         .catch((e) => {
@@ -569,10 +639,7 @@ export default function Home() {
                       name="btc"
                       type="number"
                       placeholder="$ 0.0000"
-                      onChange={(e) => {
-                        conversor(e);
-                        setBlockButton(true);
-                      }}
+                      onChange={(e) => conversor(e)}
                       value={btc}
                       class="form-control w-50"
                       aria-label="Sizing example input"
@@ -584,7 +651,8 @@ export default function Home() {
                         class="btn btn-outline-secondary w-25"
                         type="button"
                         id="button-addon2"
-                        onClick={() => calculoConversao("btc")}
+                        onClick={() => {calculoConversao("btc")
+                                        setBlockButton(false)}}
                       >
                         Converter
                       </button>
@@ -608,10 +676,8 @@ export default function Home() {
                       id="usd"
                       type="number"
                       placeholder="$ 0.00"
-                      onChange={(e) => {
-                        conversor(e);
-                        setBlockButton(true);
-                      }}
+                      onChange={(e) => conversor(e)}
+                        
                       value={usd}
                       class="form-control"
                       aria-label="Sizing example input"
@@ -623,7 +689,9 @@ export default function Home() {
                         class="btn btn-outline-secondary w-25"
                         type="button"
                         id="button-addon2"
-                        onClick={() => calculoConversao("usd")}
+                        onClick={() => {calculoConversao("usd")
+                                        setBlockButton(false);
+                      }}
                       >
                         Converter
                       </button>
@@ -641,7 +709,8 @@ export default function Home() {
                     {typeOfTransaction == "BUY" && (
                       <button
                         type="button"
-                        onClick={() => orderBuy()}
+                        onClick={() => {orderBuy()
+                                        setBlockButton(true)}}
                         value="Login"
                         class="w-50 btn btn-primary m-3"
                         disabled={blockButton}
@@ -652,7 +721,8 @@ export default function Home() {
                     {typeOfTransaction == "SELL" && (
                       <button
                         type="button"
-                        onClick={() => orderSell()}
+                        onClick={() => {orderSell()
+                                        setBlockButton(true)}}
                         value="Login"
                         class="w-50 btn btn-primary m-3"
                         disabled={blockButton}
@@ -721,7 +791,7 @@ export default function Home() {
             value="Login"
             class="w-25 btn btn-primary mb-3"
           >
-            Investir BTC
+            GERAR ORDEM DE COMPRA DE BTC
           </button>
 
           <button
@@ -733,7 +803,7 @@ export default function Home() {
             value="Login"
             class="w-25 btn btn-primary mb-3"
           >
-            Resgatar BTC
+            GERAR ORDEM DE VENDA DE BTC
           </button>
         </div>
       </div>
@@ -751,7 +821,7 @@ export default function Home() {
             </thead>
             <tbody>
               {orders
-                .filter((o) => o.active)
+                .filter((o) => o.active && o.id_user != localStorage.getItem("logged_user_id"))
                 .map((o) => {
                   const openedOrdersFiltered = orders.filter((o) => o.active);
                   if (openedOrdersFiltered.length >= 1) {
@@ -760,7 +830,7 @@ export default function Home() {
                         <td>{o.id}</td>
                         <td>₿ {o.amount}</td>
                         <td>$ {o.price}</td>
-                        <td>{o.type_of_transaction}</td>
+                        <td>{o.type_of_transaction == "BUY" ? "SELL" : "BUY"}</td>
                         <td>
                           {o.active ? (
                             <button
@@ -771,6 +841,7 @@ export default function Home() {
                                   o.type_of_transaction,
                                   o.amount,
                                   o.price,
+                                  o.fee
                                 ]);
                                 setShowConfirmExecutionModal(true);
                               }}
@@ -833,47 +904,50 @@ export default function Home() {
       </div>
 
       <div className="container border border-primary p-3 rounded-3 mb-3 card-style">
-        <h2 class="row">ASK/BID Executar todas disponíveis</h2>
+        <h2 class="row">Soma das ordens disponíveis</h2>
         <div
           class="table-responsive border border-secondary p-3"
           style={{ maxHeight: "200px" }}
         >
           <table class="table table-striped table-hover w-100">
             <thead class="thead thead-dark">
+              <th scope="col">----</th>
               <th scope="col">Price</th>
               <th scope="col">Volume</th>
-              <th scope="col">BID/ASK</th>
+              {/* <th scope="col">BID/ASK</th> */}
             </thead>
             <tbody>
               <tr scope="row">
+                <td>BID</td>
                 <td>$ {totalBuyPrice}</td>
                 <td>₿ {totalBuyAmount}</td>
-                <td>
+                {/* <td>
                   <button
                     class="btn btn-light"
                     onClick={() => {
-                      setData([null, "BUY", totalBuyAmount, totalBuyPrice]);
+                      setData([null, "BUY", totalBuyAmount, totalBuyPrice, , (totalBuyPrice * 0.003)]);
                       setShowConfirmAllExecutionsModal(true);
                     }}
                   >
                     Executar BID
                   </button>
-                </td>
+                </td> */}
               </tr>
               <tr scope="row">
+                <td>ASK</td>
                 <td>$ {totalSellPrice}</td>
                 <td>₿ {totalSellAmount}</td>
-                <td>
+                {/* <td>
                   <button
                     class="btn btn-light"
                     onClick={() => {
-                      setData([null, "SELL", totalSellAmount, totalSellPrice]);
+                      setData([null, "SELL", totalSellAmount, totalSellPrice, (totalSellPrice * 0.003)]);
                       setShowConfirmAllExecutionsModal(true);
                     }}
                   >
                     Executar ASK
                   </button>
-                </td>
+                </td> */}
               </tr>
             </tbody>
           </table>
