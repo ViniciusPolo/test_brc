@@ -36,7 +36,7 @@ export default function CreateAccount() {
           .then((status) => {
             if (status === 200) {
               alert("Usuário cadastrado com sucesso");
-              navigate("/");
+              navigate("/login");
             } else {
               alert("Ocorreu um erro, tente novamente");
             }

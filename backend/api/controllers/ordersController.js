@@ -7,7 +7,6 @@ module.exports = {
   async indexAll(req, res) {
     try {
       const orders = await Orders.findAll();
-      // const orders = "texto teste"
       return res.json(orders);
     } catch (err) {
       return res.status(400).send("Broked ->" + err);
@@ -53,6 +52,45 @@ module.exports = {
     }
   },
 
+  async countOpenedOrders(req, res) {
+    try {
+        const { id_user } = req.params;
+
+        const countOfOpenedOrders = await Orders.count({
+          where: {
+            id_user: id_user,
+            active: true
+          }
+        });
+    
+        return res.status(200).send({
+          status: 1,
+          message: "Counted",
+          countOfOpenedOrders
+        })
+    } catch (err) {
+      return res.status(400).send("Broked ->" + err);
+    }
+  },
+
+  async openedOrders(req, res) {
+    try {
+        //const { id_user } = req.params;
+
+        const openedOrders = await Orders.findAll({
+          where: {
+            //id_user: id_user,
+            active: true
+          }
+        });
+    
+        res.json(openedOrders);
+
+    } catch (err) {
+      return res.status(400).send("Broked ->" + err);
+    }
+  },
+
   async indexByIdUser(req, res) {
     const { id_user } = req.params;
     try {
@@ -68,17 +106,17 @@ module.exports = {
   async store(req, res) {
     try {
       const { id_user } = req.params;
-      const { type_of_transaction, amount, price } = req.body;
-
+      const { type_of_transaction, amount, price, unity_price } = req.body;
       const orders = await Orders.create({
         id_user,
         type_of_transaction,
         amount,
         price,
+        unity_price,
       });
       return res.status(200).send({
         status: 1,
-        message: "User sucessefull included",
+        message: "Order sucessefull included",
         orders,
       });
     } catch (error) {
@@ -88,15 +126,41 @@ module.exports = {
 
   async executeOrders(req, res) {
     try {
-      const { id_user } = req.params;
-      const { active, type_of_transaction } = req.body;
+      const { active, id_user ,type_of_transaction } = req.body;
 
       const orders = await Orders.update(
         {
           active,
+          id_user
         },
         {
-          where: { id_user: id_user, type_of_transaction: type_of_transaction },
+          where: {active: true, type_of_transaction: type_of_transaction },
+        }
+      );
+      return res.status(200).send({
+        status: 1,
+        message: "Mountant sucessefull updated",
+        orders,
+      });
+    } catch (error) {
+      return res.status(400).send(error);
+    }
+  },
+
+  async executeParcialOrders(req, res) {
+    try {
+      const { id } = req.params;
+      const { active, id_user, amount, type_of_transaction, price } = req.body;
+
+      const orders = await Orders.update(
+        {
+          active,
+          id_user,
+          amount, 
+          price   
+        },
+        {
+          where: { id: id, type_of_transaction: type_of_transaction },
         }
       );
       return res.status(200).send({
@@ -111,17 +175,17 @@ module.exports = {
 
   async executeOneOrder(req, res) {
     try {
-      const { id_user, id } = req.params;
-      const { active, type_of_transaction } = req.body;
+      const { id } = req.params;
+      const { active, id_user, type_of_transaction } = req.body;
 
       const orders = await Orders.update(
         {
           active,
+          id_user
         },
         {
           where: {
             id: id,
-            id_user: id_user,
             type_of_transaction: type_of_transaction,
           },
         }
